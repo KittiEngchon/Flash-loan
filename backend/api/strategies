@@ -1,14 +1,33 @@
-[
-  {
-    "name": "Arbitrage ETH/USDT",
-    "status": "running",
-    "last_profit": 1.2,
-    "last_tx": "0xabc..."
-  },
-  {
-    "name": "Sandwich Hunter",
-    "status": "idle",
-    "last_profit": 0.4,
-    "last_tx": "0xdef..."
-  }
+from fastapi import FastAPI, APIRouter
+from pydantic import BaseModel
+from typing import List
+
+app = FastAPI()
+router = APIRouter()
+
+class StrategyStatus(BaseModel):
+    name: str
+    status: str  # running | idle | error
+    last_profit: float
+    last_tx: str
+
+# Mock data: จำลองสถานะกลยุทธ์ AI ทั้ง 11 ตัว
+mock_strategies = [
+    {"name": "Arbitrage ETH/USDT", "status": "running", "last_profit": 1.25, "last_tx": "0xabc123..."},
+    {"name": "Sandwich Hunter", "status": "idle", "last_profit": 0.78, "last_tx": "0xdef456..."},
+    {"name": "Liquidation Hunter", "status": "running", "last_profit": 2.43, "last_tx": "0xaaa111..."},
+    {"name": "Oracle Front-runner", "status": "error", "last_profit": -0.11, "last_tx": "0xbbb222..."},
+    {"name": "DEX-to-DEX Arbitrage", "status": "running", "last_profit": 0.95, "last_tx": "0xccc333..."},
+    {"name": "Flash Arbitrage Stablecoins", "status": "idle", "last_profit": 1.78, "last_tx": "0xddd444..."},
+    {"name": "NFT Arbitrage", "status": "running", "last_profit": 0.63, "last_tx": "0xeee555..."},
+    {"name": "Gas Optimization Bot", "status": "running", "last_profit": 0.32, "last_tx": "0xfff666..."},
+    {"name": "Whale Watching Bot", "status": "idle", "last_profit": 2.13, "last_tx": "0x111777..."},
+    {"name": "Price Manipulation Guard", "status": "running", "last_profit": 0.12, "last_tx": "0x222888..."},
+    {"name": "Flash Loan Sandwich Mix", "status": "running", "last_profit": 3.52, "last_tx": "0x333999..."},
 ]
+
+@router.get("/strategies", response_model=List[StrategyStatus])
+def get_strategies():
+    return mock_strategies
+
+app.include_router(router, prefix="/api")
