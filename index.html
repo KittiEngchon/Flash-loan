@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Flash Loan Multi-Agent Dashboard</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #121212;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    background: #1f2937;
+    padding: 1rem 2rem;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    letter-spacing: 1.2px;
+  }
+  main {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 2rem;
+    gap: 2rem;
+    justify-content: center;
+  }
+  section {
+    background: #1e293b;
+    border-radius: 12px;
+    box-shadow: 0 0 12px #0f172a;
+    padding: 1.5rem;
+    flex: 1 1 350px;
+    max-width: 500px;
+  }
+  h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #3b82f6;
+    padding-bottom: 0.5rem;
+  }
+  .agent-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .agent {
+    background: #111827;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 0 8px #2563eb;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .agent-header {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.6rem;
+    color: #60a5fa;
+  }
+  .status {
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+  }
+  .status.online {
+    color: #22c55e;
+  }
+  .status.offline {
+    color: #ef4444;
+  }
+  .profit {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #facc15;
+  }
+  button {
+    background: #2563eb;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 1rem;
+    transition: background 0.3s;
+  }
+  button:hover {
+    background: #3b82f6;
+  }
+  .contract-status {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #fbbf24;
+  }
+  .log {
+    background: #111827;
+    height: 200px;
+    overflow-y: scroll;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    box-shadow: inset 0 0 8px #0f172a;
+  }
+</style>
+</head>
+<body>
+<header>AI Flash Loan Multi-Agent Dashboard</header>
+<main>
+  <section id="agents">
+    <h2>AI Agents Status (11)</h2>
+    <div class="agent-list" id="agentList">
+      <!-- Agents จะถูกเติมด้วย JS -->
+    </div>
+  </section>
+
+  <section id="flashLoanContract">
+    <h2>Flash Loan Smart Contract</h2>
+    <div>
+      <p class="contract-status" id="contractStatus">Status: <span>Idle</span></p>
+      <p>Total Loans Executed: <span id="totalLoans">0</span></p>
+      <p>Total Profit: <span id="totalProfit">$0.00</span></p>
+      <button id="startAll">Start All Agents</button>
+      <button id="stopAll" style="margin-left:10px;">Stop All Agents</button>
+    </div>
+  </section>
+
+  <section id="transactionLogs">
+    <h2>Transaction Logs</h2>
+    <div class="log" id="logArea">
+      <!-- Log ข้อมูลจะขึ้นที่นี่ -->
+    </div>
+  </section>
+</main>
+
+<script>
+  const agentsCount = 11;
+  const agentListEl = document.getElementById('agentList');
+  const contractStatusEl = document.getElementById('contractStatus').querySelector('span');
+  const totalLoansEl = document.getElementById('totalLoans');
+  const totalProfitEl = document.getElementById('totalProfit');
+  const logArea = document.getElementById('logArea');
+  const startAllBtn = document.getElementById('startAll');
+  const stopAllBtn = document.getElementById('stopAll');
+
+  let agents = [];
+  let totalLoans = 0;
+  let totalProfit = 0;
+  let contractActive = false;
+
+  // สร้าง Agent data เบื้องต้น
+  for(let i = 1; i <= agentsCount; i++) {
+    agents.push({
+      id: i,
+      name: `AI Agent #${i}`,
+      status: 'offline',
+      profit: 0,
+      lastTx: null,
+    });
+  }
+
+  function renderAgents() {
+    agentListEl.innerHTML = '';
+    agents.forEach(agent => {
+      const div = document.createElement('div');
+      div.className = 'agent';
+      div.innerHTML = `
+        <div class="agent-header">${agent.name}</div>
+        <div class="status ${agent.status === 'online' ? 'online' : 'offline'}">Status: ${agent.status}</div>
+        <div class="profit">Profit: $${agent.profit.toFixed(2)}</div>
+        <button onclick="toggleAgent(${agent.id})">${agent.status === 'online' ? 'Stop' : 'Start'}</button>
+      `;
+      agentListEl.appendChild(div);
+    });
+  }
+
+  function log(msg) {
+    const time = new Date().toLocaleTimeString();
+    logArea.innerHTML = `[${time}] ${msg}\n` + logArea.innerHTML;
+  }
+
+  function toggleAgent(id) {
+    const agent = agents.find(a => a.id === id);
+    if(agent.status === 'offline') {
+      agent.status = 'online';
+      contractActive = true;
+      contractStatusEl.textContent = 'Active';
+      log(`${agent.name} started.`);
+      simulateProfit(agent);
+    } else {
+      agent.status = 'offline';
+      log(`${agent.name} stopped.`);
+      checkIfAllOffline();
+    }
+    renderAgents();
+  }
+
+  function checkIfAllOffline() {
+    if(agents.every(a => a.status === 'offline')) {
+      contractActive = false;
+      contractStatusEl.textContent = 'Idle';
+      log('All agents stopped. Contract idle.');
+    }
+  }
+
+  function simulateProfit(agent) {
+    if(agent.status === 'online') {
+      // สุ่มกำไรระหว่าง 5-50 ดอลลาร์ทุก 3-7 วินาที
+      const profit = (Math.random() * 45) + 5;
+      agent.profit += profit;
+      totalProfit += profit;
+      totalLoans++;
+      totalLoansEl.textContent = totalLoans;
+      totalProfitEl.textContent = '$' + totalProfit.toFixed(2);
+      log(`${agent.name} executed flash loan, profit: $${profit.toFixed(2)}`);
+      setTimeout(() => simulateProfit(agent), (Math.random() * 4000) + 3000);
+    }
+  }
+
+  startAllBtn.addEventListener('click', () => {
+    agents.forEach(agent => {
+      if(agent.status === 'offline') toggleAgent(agent.id);
+    });
+  });
+
+  stopAllBtn.addEventListener('click', () => {
+    agents.forEach(agent => {
+      if(agent.status === 'online') toggleAgent(agent.id);
+    });
+  });
+
+  // เริ่มแสดงผลตั้งต้น
+  renderAgents();
+</script>
+</body>
+</html>
