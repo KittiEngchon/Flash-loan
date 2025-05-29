@@ -1,8 +1,7 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
 
-app = FastAPI()
 router = APIRouter()
 
 class StrategyStatus(BaseModel):
@@ -11,7 +10,7 @@ class StrategyStatus(BaseModel):
     last_profit: float
     last_tx: str
 
-# Mock data: จำลองสถานะกลยุทธ์ AI ทั้ง 11 ตัว
+# Mock data
 mock_strategies = [
     {"name": "Arbitrage ETH/USDT", "status": "running", "last_profit": 1.25, "last_tx": "0xabc123..."},
     {"name": "Sandwich Hunter", "status": "idle", "last_profit": 0.78, "last_tx": "0xdef456..."},
@@ -29,5 +28,3 @@ mock_strategies = [
 @router.get("/strategies", response_model=List[StrategyStatus])
 def get_strategies():
     return mock_strategies
-
-app.include_router(router, prefix="/api")
