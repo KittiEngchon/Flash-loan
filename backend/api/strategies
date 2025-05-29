@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Arbitrage ETH/USDT",
+    "status": "running",
+    "last_profit": 1.2,
+    "last_tx": "0xabc..."
+  },
+  {
+    "name": "Sandwich Hunter",
+    "status": "idle",
+    "last_profit": 0.4,
+    "last_tx": "0xdef..."
+  }
+]
